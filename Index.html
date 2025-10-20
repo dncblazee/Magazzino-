@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="App per gestione magazzino negozio casalinghi">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR2VzdGlvbmUgTWFnYXp6aW5vIiwic2hvcnRfbmFtZSI6Ik1hZ2F6emlubyIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwidGhlbWVfY29sb3IiOiIjMjU2M2ViIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmclMjB4bWxucyUzRCdodHRwJTNBJTJGJTJGd3d3LnczLm9yZyUyRjIwMDAlMkZzdmcnJTIwd2lkdGglM0QnMTkyJyUyMGhlaWdodCUzRCcxOTInJTNFJTNDcmVjdCUyMHdpZHRoJTNEJzE5MicgaGVpZ2h0JTNEJzE5MicgZmlsbCUzRCclMjMyNTYzZWInJTJGJTNFJTNDdGV4dCUyMHglM0QnNTAlMjUnJTIweSUzRCc1MCUyNSclMjBmb250LXNpemUlM0QnODAnJTIwdGV4dC1hbmNob3IlM0QnbWlkZGxlJyUyMGR5JTNEJy4zZW0nJTIwZmlsbCUzRCd3aGl0ZSclM0UlRjAlOUYlOTMlQTYlM0MlMkZ0ZXh0JTNFJTNDJTJGc3ZnJTNFIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjE5MngxOTIifV19">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Crect width='192' height='192' fill='%232563eb'/%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dy='.3em' fill='white'%3E📦%3C/text%3E%3C/svg%3E">
+    <title>Gestione Magazzino</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            padding-bottom: 80px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card .label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .stat-card .icon {
+            font-size: 28px;
+            float: right;
+        }
+        
+        .controls {
+            padding: 16px;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .products {
+            padding: 16px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+        
+        .product-title {
+            flex: 1;
+        }
+        
+        .product-title h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        
+        .product-title .barcode {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+        
+        .product-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+        
+        .btn-icon:hover {
+            background: #f3f4f6;
+        }
+        
+        .product-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .detail-item .label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        
+        .detail-item .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .low-stock {
+            color: #dc2626 !important;
+        }
+        
+        .profit {
+            color: #10b981 !important;
+        }
+        
+        .price-sale {
+            color: #2563eb !important;
+        }
+        
+        .product-total {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .empty-state {
+            background: white;
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            color: #6b7280;
+            margin: 16px;
+        }
+        
+        .scanner-container {
+            margin-bottom: 16px;
+        }
+        
+        #reader {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .alert {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 Gestione Magazzino</h1>
+        <p>Negozio di Casalinghi</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="label">Prodotti</div>
+            <div class="value" id="totalProducts">0</div>
+            <div class="icon">📦</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Valore</div>
+            <div class="value" id="totalValue">€0</div>
+            <div class="icon">💰</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Scorte Basse</div>
+            <div class="value low-stock" id="lowStock">0</div>
+            <div class="icon">⚠️</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 Cerca per nome, barcode o categoria...">
+        <button class="btn btn-primary" onclick="openModal()">➕ Aggiungi Prodotto</button>
+    </div>
+
+    <div class="products" id="productsList"></div>
+
+    <!-- Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">Nuovo Prodotto</div>
+            
+            <div class="scanner-container" id="scannerContainer" style="display:none;">
+                <div id="reader"></div>
+                <button class="btn btn-secondary" onclick="stopScanner()" style="margin-top:12px">Chiudi Scanner</button>
+            </div>
+
+            <div class="form-group">
+                <label>Barcode</label>
+                <div class="form-row">
+                    <input type="text" id="barcode" placeholder="8001234567890" required>
+                    <button class="btn btn-success" onclick="startScanner()">📷 Scan</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nome Prodotto</label>
+                <input type="text" id="name" placeholder="es. Set Pentole Acciaio Inox" required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Quantità</label>
+                    <input type="number" id="quantity" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Scorta Minima</label>
+                    <input type="number" id="minStock" min="0" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Prezzo Acquisto (€)</label>
+                    <input type="number" id="purchasePrice" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Prezzo Vendita (€)</label>
+                    <input type="number" id="salePrice" step="0.01" min="0" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="category" required>
+                    <option value="">Seleziona categoria</option>
+                    <option value="Cucina">Cucina</option>
+                    <option value="Bagno">Bagno</option>
+                    <option value="Camera">Camera</option>
+                    <option value="Pulizia">Pulizia</option>
+                    <option value="Decorazione">Decorazione</option>
+                    <option value="Altro">Altro</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="saveProduct()" style="flex:1">💾 Salva</button>
+                <button class="btn btn-secondary" onclick="closeModal()" style="flex:1">❌ Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let products = [];
+        let editingId = null;
+        let html5QrcodeScanner = null;
+
+        // Carica dati salvati
+        function loadData() {
+            const saved = localStorage.getItem('inventoryProducts');
+            if (saved) {
+                products = JSON.parse(saved);
+                renderProducts();
+            }
+        }
+
+        // Salva dati
+        function saveData() {
+            localStorage.setItem('inventoryProducts', JSON.stringify(products));
+        }
+
+        // Apri modal
+        function openModal(product = null) {
+            const modal = document.getElementById('productModal');
+            const title = document.getElementById('modalTitle');
+            
+            if (product) {
+                editingId = product.id;
+                title.textContent = 'Modifica Prodotto';
+                document.getElementById('barcode').value = product.barcode;
+                document.getElementById('name').value = product.name;
+                document.getElementById('quantity').value = product.quantity;
+                document.getElementById('minStock').value = product.minStock;
+                document.getElementById('purchasePrice').value = product.purchasePrice;
+                document.getElementById('salePrice').value = product.salePrice;
+                document.getElementById('category').value = product.category;
+            } else {
+                editingId = null;
+                title.textContent = 'Nuovo Prodotto';
+                document.getElementById('barcode').value = '';
+                document.getElementById('name').value = '';
+                document.getElementById('quantity').value = '';
+                document.getElementById('minStock').value = '';
+                document.getElementById('purchasePrice').value = '';
+                document.getElementById('salePrice').value = '';
+                document.getElementById('category').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        // Chiudi modal
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+            stopScanner();
+        }
+
+        // Avvia scanner
+        function startScanner() {
+            const container = document.getElementById('scannerContainer');
+            container.style.display = 'block';
+            
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                (decodedText) => {
+                    document.getElementById('barcode').value = decodedText;
+                    stopScanner();
+                }
+            ).catch(err => {
+                alert('Errore scanner: ' + err);
+                stopScanner();
+            });
+        }
+
+        // Ferma scanner
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner = null;
+                    document.getElementById('scannerContainer').style.display = 'none';
+                }).catch(err => console.log(err));
+            }
+        }
+
+        // Salva prodotto
+        function saveProduct() {
+            const barcode = document.getElementById('barcode').value;
+            const name = document.getElementById('name').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const minStock = parseInt(document.getElementById('minStock').value);
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
+            const salePrice = parseFloat(document.getElementById('salePrice').value);
+            const category = document.getElementById('category').value;
+
+            if (!barcode || !name || !category) {
+                alert('Compila tutti i campi obbligatori!');
+                return;
+            }
+
+            if (editingId) {
+                const index = products.findIndex(p => p.id === editingId);
+                products[index] = {
+                    id: editingId,
+                    barcode, name, quantity, minStock, purchasePrice, salePrice, category
+                };
+            } else {
+                products.push({
+                    id: Date.now(),
+                    barcode, name, quantity, minStock, purchasePrice, salePrice, category
+                });
+            }
+
+            saveData();
+            renderProducts();
+            closeModal();
+        }
+
+        // Elimina prodotto
+        function deleteProduct(id) {
+            if (confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+                products = products.filter(p => p.id !== id);
+                saveData();
+                renderProducts();
+            }
+        }
+
+        // Renderizza prodotti
+        function renderProducts() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = products.filter(p =>
+                p.name.toLowerCase().includes(searchTerm) ||
+                p.barcode.includes(searchTerm) ||
+                p.category.toLowerCase().includes(searchTerm)
+            );
+
+            const totalValue = products.reduce((sum, p) => sum + (p.quantity * p.purchasePrice), 0);
+            const lowStockCount = products.filter(p => p.quantity <= p.minStock).length;
+
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalValue').textContent = '€' + totalValue.toFixed(0);
+            document.getElementById('lowStock').textContent = lowStockCount;
+
+            const container = document.getElementById('productsList');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">📦 Nessun prodotto trovato</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => {
+                const margin = ((p.salePrice - p.purchasePrice) / p.salePrice * 100).toFixed(1);
+                const isLowStock = p.quantity <= p.minStock;
+                const totalValue = (p.quantity * p.purchasePrice).toFixed(2);
+
+                return `
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-title">
+                                <h3>${p.name}</h3>
+                                <div class="barcode">${p.barcode}</div>
+                                <span class="category-badge">${p.category}</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-icon" onclick='openModal(${JSON.stringify(p).replace(/'/g, "&apos;")})'>✏️</button>
+                                <button class="btn-icon" onclick="deleteProduct(${p.id})">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="product-details">
+                            <div class="detail-item">
+                                <div class="label">Quantità</div>
+                                <div class="value ${isLowStock ? 'low-stock' : ''}">${p.quantity} pz ${isLowStock ? '⚠️' : ''}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">Margine</div>
+  
